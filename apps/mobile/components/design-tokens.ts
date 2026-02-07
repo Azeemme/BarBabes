@@ -1,6 +1,8 @@
 /**
  * Neon Night Design System – SafeRound
  * High-contrast, drunk-friendly UI.
+ * Use these as style properties only (e.g. style={{ backgroundColor: colors.safe }}).
+ * Do not render as text nodes.
  */
 export const colors = {
   background: "#000000",
