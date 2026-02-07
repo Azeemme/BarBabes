@@ -26,6 +26,16 @@ app.include_router(sobriety.router)
 app.include_router(users.router)
 
 
+@app.get("/")
+async def root():
+    return {
+        "status": "ok",
+        "message": "SafeRound API",
+        "docs": "/docs",
+        "health": "/health",
+    }
+
+
 @app.get("/health")
 async def health():
     return {"status": "ok"}
