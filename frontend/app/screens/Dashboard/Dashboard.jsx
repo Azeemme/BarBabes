@@ -16,10 +16,17 @@ import toastStyles from '../../components/ToastStyles';
 import { useUser } from '../../context/UserContext';
 
 let NfcManager;
+let Ndef;
+let NfcEvents;
 try {
-  NfcManager = require('react-native-nfc-manager').default;
+  const nfc = require('react-native-nfc-manager');
+  NfcManager = nfc.default;
+  Ndef = nfc.Ndef;
+  NfcEvents = nfc.NfcEvents;
 } catch (_) {
   NfcManager = null;
+  Ndef = null;
+  NfcEvents = null;
 }
 const GRAMS_PER_DRINK_NFC = 14;
 
@@ -116,31 +123,61 @@ const Dashboard = () => {
   }, [drinkCount, weight, gender]);
 
   useEffect(() => {
-    if (!NfcManager || !addDrink) return;
+    if (!NfcManager || !NfcEvents || !addDrink) return;
     let cancelled = false;
+
+    const onTag = (tag) => {
+      if (cancelled) return;
+      let grams = GRAMS_PER_DRINK_NFC;
+      try {
+        const record = tag?.ndefMessage?.[0];
+        let str = '';
+        if (record?.payload) {
+          const payload = record.payload;
+          if (Ndef?.isType?.(record, Ndef.TNF_WELL_KNOWN, Ndef.RTD_TEXT)) {
+            const bytes = Array.isArray(payload) ? payload : (payload && typeof payload.slice === 'function' ? payload : []);
+            str = Ndef?.text?.decodePayload?.(new Uint8Array(bytes)) ?? '';
+          } else {
+            str = typeof payload === 'string' ? payload : (Array.isArray(payload) ? String.fromCharCode(...payload) : '');
+          }
+        }
+        if (str) {
+          const trimmed = str.replace(/^[\x00-\x20\u00a0]+/, '').replace(/^[a-z]{2,3}\s*/, '');
+          let parsed = {};
+          try {
+            parsed = JSON.parse(trimmed || '{}');
+          } catch (_) {
+            const jsonMatch = str.match(/\{[\s\S]*"alcohol_grams"[\s\S]*\}/);
+            if (jsonMatch) parsed = JSON.parse(jsonMatch[0]);
+          }
+          if (typeof parsed.alcohol_grams === 'number' && parsed.alcohol_grams > 0) grams = parsed.alcohol_grams;
+        }
+      } catch (_) {}
+      addDrink(grams);
+      showToastRef.current(`NFC: drink added (${grams}g)`);
+    };
+
+    NfcManager.setEventListener(NfcEvents.DiscoverTag, onTag);
+
     (async () => {
       try {
         const supported = await NfcManager.isSupported();
         if (!supported || cancelled) return;
+        const enabled = await NfcManager.isEnabled?.().catch(() => true);
+        if (!enabled && !cancelled) {
+          showToastRef.current?.('NFC is off. Turn it on in Settings.');
+          return;
+        }
         await NfcManager.start();
-        await NfcManager.registerTagEvent((tag) => {
-          if (cancelled) return;
-          let grams = GRAMS_PER_DRINK_NFC;
-          try {
-            const payload = tag?.ndefMessage?.[0]?.payload || tag?.payload;
-            if (payload) {
-              const str = typeof payload === 'string' ? payload : (payload && Array.isArray(payload) ? String.fromCharCode(...payload) : '');
-              const parsed = JSON.parse(str || '{}');
-              if (typeof parsed.alcohol_grams === 'number' && parsed.alcohol_grams > 0) grams = parsed.alcohol_grams;
-            }
-          } catch (_) {}
-          addDrink(grams);
-          showToastRef.current(`NFC: drink added (${grams}g)`);
-        });
-      } catch (_) {}
+        await NfcManager.registerTagEvent({ invalidateAfterFirstRead: false });
+      } catch (e) {
+        if (!cancelled) showToastRef.current?.(e?.message || 'NFC failed to start');
+      }
     })();
+
     return () => {
       cancelled = true;
+      NfcManager?.setEventListener?.(NfcEvents?.DiscoverTag, null);
       NfcManager?.unregisterTagEvent?.().catch(() => {});
     };
   }, [addDrink]);
@@ -246,6 +283,9 @@ const Dashboard = () => {
           >
             <Text style={styles.nfcButtonText}>NFC Tap Drink</Text>
           </TouchableOpacity>
+          {!NfcManager && (
+            <Text style={styles.nfcHint}>NFC requires a development build on a physical device (not Expo Go).</Text>
+          )}
           {__DEV__ && (
             <TouchableOpacity
               style={[styles.nfcButton, { marginTop: 4, opacity: 0.7 }]}
@@ -368,6 +408,13 @@ const styles = StyleSheet.create({
   nfcButtonText: {
     color: 'rgba(255,255,255,0.8)',
     fontSize: 14,
+  },
+  nfcHint: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 11,
+    marginTop: 4,
+    textAlign: 'center',
+    paddingHorizontal: 16,
   },
   statusText: {
     color: 'white',

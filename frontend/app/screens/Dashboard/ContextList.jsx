@@ -1,40 +1,48 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import MainLayout from '../../MainLayout';
 import BottomNavBar from '../../components/BottomNavBar';
+import { useUser } from '../../context/UserContext';
 
 const { width } = Dimensions.get('window');
 
-// Import shared contact data
-import { contactData } from '../../data/contacts';
+function memberToContact(m) {
+  const name = m.name || [m.first_name, m.last_name].filter(Boolean).join(' ') || 'Unknown';
+  const initials = (m.first_name?.[0] || '') + (m.last_name?.[0] || '') || name.slice(0, 2).toUpperCase() || '?';
+  return { id: m.user_id, name, initials, statusColor: 'rgba(255, 255, 255, 0.15)' };
+}
 
 export default function ContactListScreen() {
-  // Sort so Primary Contact 1 and 2 are always at the top
-  const sortedContacts = [
-    ...contactData.filter(c => c.name === 'Primary Contact 1' || c.name === 'Primary Contact 2'),
-    ...contactData.filter(c => c.name !== 'Primary Contact 1' && c.name !== 'Primary Contact 2'),
-  ];
+  const { groupId, groupMembers, refreshGroupMembers } = useUser();
+
+  useEffect(() => {
+    if (groupId && refreshGroupMembers) refreshGroupMembers();
+  }, [groupId]);
+
+  const contacts = (groupMembers || []).map(memberToContact);
+
   return (
     <MainLayout>
       <View style={styles.container}>
-        {/* Page Title */}
-        <Text style={styles.pageTitle}>Your Contacts</Text>
-        {/* Scrollable List */}
+        <Text style={styles.pageTitle}>Your Group</Text>
         <ScrollView 
           contentContainerStyle={styles.listContainer} 
           showsVerticalScrollIndicator={false}
         >
-          {sortedContacts.map((contact) => (
-            <ContactRow 
-              key={contact.id}
-              name={contact.name}
-              initials={contact.initials}
-              statusColor={contact.statusColor}
-            />
-          ))}
+          {contacts.length === 0 ? (
+            <Text style={styles.emptyText}>No group members yet. Join or create a group to see contacts here.</Text>
+          ) : (
+            contacts.map((contact) => (
+              <ContactRow 
+                key={contact.id}
+                name={contact.name}
+                initials={contact.initials}
+                statusColor={contact.statusColor}
+              />
+            ))
+          )}
         </ScrollView>
       </View>
-      {/* Fixed Bottom Bar */}
       <BottomNavBar />
     </MainLayout>
   );
@@ -76,8 +84,15 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   listContainer: {
-    paddingBottom: 100, // Extra space for BottomNavBar
-    gap: 12, // Spacing between rows
+    paddingBottom: 100,
+    gap: 12,
+  },
+  emptyText: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 24,
+    paddingHorizontal: 20,
   },
   // Row Styles
   rowContainer: {

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -118,8 +118,12 @@ function PersonRow({ person, onBellPress }) {
 }
 
 export default function GroupMapScreen() {
-  const { groupMembers } = useUser();
+  const { groupId, groupMembers, refreshGroupMembers } = useUser();
   const mapPeople = membersToMapPeople(groupMembers);
+
+  useEffect(() => {
+    if (groupId && refreshGroupMembers) refreshGroupMembers();
+  }, [groupId]);
   const sheetHeight = useRef(new Animated.Value(COLLAPSED_HEIGHT)).current;
   const [isExpanded, setIsExpanded] = useState(false);
   const [toast, setToast] = useState(null);

@@ -93,6 +93,26 @@ export const UserProvider = ({ children }) => {
     return { group_id: String(data.group_id) };
   }, [userId]);
 
+  const joinGroupById = useCallback(async (group_id) => {
+    if (!group_id) throw new Error('Select a group to join.');
+    const res = await fetch(`${API_BASE}/groups/join`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ group_id: String(group_id), user_id: userId }),
+    });
+    if (res.status === 404) throw new Error('Group not found.');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'Could not join group');
+    }
+    const data = await res.json();
+    const newGroupId = String(data.group_id ?? '');
+    setGroupId(newGroupId);
+    setGroupCode((data.code ?? '').toString());
+    setGroupMembers([]);
+    return { group_id: newGroupId };
+  }, [userId]);
+
   const refreshGroupMembers = useCallback(async () => {
     if (!groupId) return;
     try {
@@ -178,6 +198,7 @@ export const UserProvider = ({ children }) => {
         setGroupMembers,
         createGroup,
         joinGroup,
+        joinGroupById,
         refreshGroupMembers,
         leaveGroup,
         reactionLatencies,

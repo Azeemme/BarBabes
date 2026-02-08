@@ -4,14 +4,18 @@
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web",
+    "prebuild": "expo prebuild",
+    "run:ios": "expo run:ios",
+    "run:android": "expo run:android"
   },
   "@react-native-community/slider": "^4.4.3",
   "dependencies": {
     "@react-native-community/slider": "^5.1.2",
     "expo": "^54.0.33",
+    "expo-dev-client": "~6.0.3",
     "expo-constants": "~18.0.13",
     "expo-image-picker": "~17.0.10",
     "expo-linear-gradient": "~15.0.8",

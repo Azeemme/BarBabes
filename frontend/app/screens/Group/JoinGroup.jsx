@@ -36,11 +36,11 @@ const GroupItem = ({ name, memberCount, selected, onPress }) => (
 
 const JoinGroupScreen = () => {
     const [search, setSearch] = useState("");
-    const [selectedGroup, setSelectedGroup] = useState(null);
+    const [selectedGroupId, setSelectedGroupId] = useState(null);
     const [groups, setGroups] = useState([]);
     const [loading, setLoading] = useState(false);
     const router = useRouter();
-    const { userId, joinGroup, leaveGroup, groupId } = useUser();
+    const { joinGroupById, joinGroup, leaveGroup, groupId } = useUser();
 
     useEffect(() => {
         setLoading(true);
@@ -53,8 +53,11 @@ const JoinGroupScreen = () => {
             .finally(() => setLoading(false));
     }, []);
 
+    const searchLower = search.trim().toLowerCase();
     const filteredGroups = groups.filter(g =>
-        g.code.toLowerCase().includes(search.toLowerCase())
+        !searchLower ||
+        (g.code || '').toLowerCase().includes(searchLower) ||
+        (g.name || '').toLowerCase().includes(searchLower)
     );
 
     return (
@@ -93,15 +96,18 @@ const JoinGroupScreen = () => {
                                                             {loading ? (
                                                                 <Text style={{ color: 'white', textAlign: 'center', marginTop: 16 }}>Loading groups...</Text>
                                                             ) : filteredGroups.length > 0 ? (
-                                                                filteredGroups.map((group) => (
-                                                                    <GroupItem
-                                                                        key={group.code}
-                                                                        name={group.name || group.code}
-                                                                        memberCount={group.member_count}
-                                                                        selected={selectedGroup === group.code}
-                                                                        onPress={() => setSelectedGroup(group.code)}
-                                                                    />
-                                                                ))
+                                                                filteredGroups.map((group, index) => {
+                                                                    const idOrCode = group.group_id || group.code;
+                                                                    return (
+                                                                        <GroupItem
+                                                                            key={idOrCode || `group-${index}`}
+                                                                            name={group.name || group.code || 'Unnamed'}
+                                                                            memberCount={group.member_count ?? 0}
+                                                                            selected={selectedGroupId === idOrCode}
+                                                                            onPress={() => setSelectedGroupId(idOrCode)}
+                                                                        />
+                                                                    );
+                                                                })
                                                             ) : (
                                                                 <Text style={{ color: 'white', textAlign: 'center', marginTop: 16 }}>No groups found.</Text>
                                                             )}
@@ -112,12 +118,17 @@ const JoinGroupScreen = () => {
                         {/* Join Button */}
                         <TouchableOpacity
                             style={styles.joinButtonWrapper}
-                            disabled={!selectedGroup}
+                            disabled={!selectedGroupId}
                             onPress={async () => {
-                                if (!selectedGroup || !joinGroup) return;
+                                if (!selectedGroupId) return;
+                                const joinByGroupId = /^[a-f0-9]{24}$/i.test(String(selectedGroupId));
                                 try {
                                     if (groupId && leaveGroup) await leaveGroup();
-                                    await joinGroup(selectedGroup);
+                                    if (joinByGroupId && joinGroupById) {
+                                        await joinGroupById(selectedGroupId);
+                                    } else if (joinGroup) {
+                                        await joinGroup(selectedGroupId);
+                                    }
                                     router.push('/dashboard');
                                 } catch (e) {
                                     Alert.alert('Could not join', e?.message || 'Please try again.');
@@ -128,7 +139,7 @@ const JoinGroupScreen = () => {
                                 colors={['#BE5C5C', '#6E1F30']}
                                 style={styles.joinButton}
                             >
-                                <Text style={[styles.joinButtonText, { opacity: selectedGroup ? 1 : 0.5 }]}>Join Group</Text>
+                                <Text style={[styles.joinButtonText, { opacity: selectedGroupId ? 1 : 0.5 }]}>Join Group</Text>
                             </LinearGradient>
                         </TouchableOpacity>
                     </SafeAreaView>
