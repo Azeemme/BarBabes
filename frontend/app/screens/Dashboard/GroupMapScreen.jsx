@@ -85,13 +85,12 @@ function PersonRow({ person, onBellPress }) {
     <View style={styles.personRow}>
       {/* Avatar stays neutral, must be a <Text> for initials and car icon */}
       <View style={[styles.personAvatar, { backgroundColor: '#333', position: 'relative' }]}> 
-        <Text style={styles.personAvatarText}>
-          {person.initials}
-          {/* Car icon overlaps bottom edge of avatar if Designated Diana and BAC is 0.00 */}
-          {person.name === 'Designated Diana' && person.bac === 0 && (
-            <Text style={styles.carIconInline}>🚗</Text>
-          )}
-        </Text>
+        {/* Center initials absolutely */}
+        <Text style={styles.personAvatarText}>{person.initials}</Text>
+        {/* Car icon overlaps bottom edge of avatar if Designated Diana and BAC is 0.00 */}
+        {person.name === 'Designated Diana' && person.bac === 0 && (
+          <Text style={styles.carIconInline}>🚗</Text>
+        )}
       </View>
       <Text
         style={[styles.personNameBg, { backgroundColor: person.color }]} numberOfLines={1}
@@ -369,17 +368,15 @@ const styles = StyleSheet.create({
   carIconInline: {
     fontSize: 18,
     position: 'absolute',
-    left: '50%',
-    bottom: -10,
-    transform: [{ translateX: -12 }],
+    left: '20%',
+    bottom: -12,
+    transform: [{ translateX: -12 }], // Center horizontally
     zIndex: 10,
     width: 24,
     height: 24,
     textAlign: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   sheet: {
     position: 'absolute',
@@ -420,6 +417,8 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
+    backgroundColor: '#333',
+    position: 'relative',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -427,6 +426,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',
+    textAlign: 'center',
   },
   personNameBg: {
     borderRadius: 8,

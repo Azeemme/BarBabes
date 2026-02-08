@@ -38,8 +38,11 @@ const MainLayout = ({ children }) => {
               <TouchableOpacity style={styles.menuItem} onPress={handleProfilePress}>
                 <Text style={styles.menuText}>Profile</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.menuItem} onPress={() => {}}>
-                <Text style={styles.menuText}>Settings</Text>
+              <TouchableOpacity style={styles.menuItem} onPress={() => {
+                setMenuOpen(false);
+                router.replace('/screens/User/SignIn');
+              }}>
+                <Text style={styles.menuText}>Log Out</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.menuItem, styles.menuItemDanger]} onPress={handleLeaveGroup}>
                 <Text style={styles.menuTextDanger}>Leave Group</Text>
