@@ -4,16 +4,16 @@ import { useRouter } from 'expo-router';
 
 export default function CreateGroupScreen() {
   const router = useRouter();
-
+  
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Create Group Screen</Text>
       <TouchableOpacity
         style={styles.button}
-        onPress={() => router.replace('/dashboard')}
+        onPress={() => router.replace('/group/creategroup')}
         activeOpacity={0.8}
       >
-        <Text style={styles.buttonText}>Go to Dashboard</Text>
+        <Text style={styles.buttonText}>Go to Create Group</Text>
       </TouchableOpacity>
     </View>
   );
