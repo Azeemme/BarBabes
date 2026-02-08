@@ -8,6 +8,20 @@ from app.models import BiologicalSex, UserProfile
 router = APIRouter(prefix="/users", tags=["users"])
 
 
+@router.post("")
+async def create_user(body: UserProfile, db=Depends(get_db)):
+    existing = await db.users.find_one({"user_id": body.user_id})
+    if existing:
+        raise HTTPException(409, "User already exists")
+    doc = body.model_dump()
+    now = datetime.now(timezone.utc)
+    doc["created_at"] = now
+    doc["updated_at"] = now
+    result = await db.users.insert_one(doc)
+    doc["_id"] = str(result.inserted_id)
+    return doc
+
+
 @router.get("/{user_id}")
 async def get_user(user_id: str, db=Depends(get_db)):
     user = await db.users.find_one({"user_id": user_id})

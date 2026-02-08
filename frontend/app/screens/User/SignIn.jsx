@@ -34,7 +34,7 @@ const Screen = () => {
       setPasswordError("");
     }
     if (valid) {
-      router.push('/screens/User/Profile');
+      router.push({ pathname: '/screens/User/Profile', params: { email } });
     }
   };
 
