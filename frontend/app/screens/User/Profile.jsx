@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import WomanSilhouette from '../../assets/woman_silhouette.png';
 import WomanSilhouette2 from '../../assets/woman_silhouette2.png';
 import Slider from '@react-native-community/slider';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { 
   View, 
@@ -19,7 +19,8 @@ import {
   Pressable,
   SafeAreaView,
   TouchableWithoutFeedback,
-  Keyboard
+  Keyboard,
+  Alert
 } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
@@ -99,12 +100,78 @@ function ProfilePhotoButton() {
 }
 function ProfileScreen() {
   const router = useRouter();
+  const { email } = useLocalSearchParams();
   const { firstName, setFirstName } = useUser();
   const [lastName, setLastName] = useState('');
   const [age, setAge] = useState('');
   const [heightFt, setHeightFt] = useState();
   const [heightIn, setHeightIn] = useState();
   const [weight, setWeight] = useState('');
+  const [gender, setGender] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const API_URL = 'http://10.186.38.91:8000';
+
+  const handleCompleteSignup = async () => {
+    if (!email) {
+      Alert.alert('Missing email', 'Please go back and enter an email address.');
+      return;
+    }
+    const ageNum = parseInt(age, 10);
+    const weightLbs = parseFloat(weight);
+    if (!ageNum || ageNum < 18) {
+      Alert.alert('Invalid age', 'Please enter a valid age (18+).');
+      return;
+    }
+    if (!weightLbs || weightLbs <= 0) {
+      Alert.alert('Invalid weight', 'Please enter your weight.');
+      return;
+    }
+    if (!gender) {
+      Alert.alert('Missing gender', 'Please select a gender.');
+      return;
+    }
+
+    const weightKg = Math.round((weightLbs * 0.45359237) * 100) / 100;
+    const payload = {
+      user_id: email,
+      age: ageNum,
+      weight_kg: weightKg,
+      sex: gender.toLowerCase(),
+      primary_contact: email,
+    };
+
+    try {
+      setIsSaving(true);
+      const healthUrl = `${API_URL}/health`;
+      const healthRes = await fetch(healthUrl);
+      if (!healthRes.ok) {
+        const text = await healthRes.text();
+        Alert.alert('Server not ready', `Health check failed (${healthRes.status}).\n\n${healthUrl}\n\n${text}`);
+        return;
+      }
+
+      const res = await fetch(`${API_URL}/users`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        if (res.status === 409) {
+          Alert.alert('Account exists', 'A user with this email already exists.');
+        } else {
+          Alert.alert('Sign up failed', text || 'Unable to create your account.');
+        }
+        return;
+      }
+      router.push('../Home/HomeScreen');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      Alert.alert('Network error', `Unable to reach the server.\n\n${message}`);
+    } finally {
+      setIsSaving(false);
+    }
+  };
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
@@ -169,7 +236,7 @@ function ProfileScreen() {
                     value={age}
                   />
                 </View>
-                <GenderDropdown containerStyle={{ flex: 0.55 }} />
+                <GenderDropdown containerStyle={{ flex: 0.55 }} gender={gender} setGender={setGender} />
               </View>
               {/* Row 3: Height & Weight */}
               <View style={styles.row}>
@@ -203,9 +270,10 @@ function ProfileScreen() {
               <TouchableOpacity
                 activeOpacity={0.8}
                 style={styles.mainButton}
-                onPress={() => router.push('../Home/HomeScreen')}
+                onPress={handleCompleteSignup}
+                disabled={isSaving}
               >
-                <Text style={styles.buttonText}>Discover Your BAC Tolerance</Text>
+                <Text style={styles.buttonText}>{isSaving ? 'Creating Account...' : 'Discover Your BAC Tolerance'}</Text>
               </TouchableOpacity>
             </View>{/* end formContainer */}
           </View>{/* end contentContainer */}
@@ -398,9 +466,8 @@ const HeightPicker = ({ heightFt, setHeightFt, heightIn, setHeightIn }) => {
   );
 };
 
-const GenderDropdown = ({ containerStyle }) => {
+const GenderDropdown = ({ containerStyle, gender, setGender }) => {
   const [open, setOpen] = useState(false);
-  const [gender, setGender] = useState('');
   return (
     <View style={[styles.inputContainer, containerStyle, { position: 'relative', zIndex: 10 }]}> 
       <TouchableOpacity onPress={() => setOpen(!open)} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
