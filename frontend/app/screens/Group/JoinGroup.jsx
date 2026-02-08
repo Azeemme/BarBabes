@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React from 'react';
 import {
   StyleSheet,
@@ -26,6 +27,42 @@ const GroupItem = ({ name }) => (
 const JoinGroupScreen = () => {
   return (
     <View style={styles.container}>
+=======
+                
+                
+        import React from 'react';
+        import { 
+        StyleSheet, 
+        View, 
+        Text, 
+        TextInput, 
+        TouchableOpacity, 
+        SafeAreaView, 
+        Dimensions 
+        } from 'react-native';
+        import { LinearGradient } from 'expo-linear-gradient';
+
+        const { width } = Dimensions.get('window');
+
+        const GroupItem = ({ name }) => (
+        <View style={styles.groupCard}>
+            <View style={styles.groupInfo}>
+            <View style={styles.iconCircle}>
+                {/* Replace with your specific SVG/Icon component */}
+                <View style={styles.placeholderIcon} />
+            </View>
+            <Text style={styles.groupName} numberOfLines={1}>{name}</Text>
+            </View>
+            <TouchableOpacity style={styles.addButton}>
+            <Text style={styles.plusSymbol}>+</Text>
+            </TouchableOpacity>
+        </View>
+        );
+
+        const JoinGroupScreen = () => {
+        return (
+            <View style={styles.container}>
+>>>>>>> 8fdfda3e14e347aa06d08f4cc1048a2eb7bc404c
             {/* Background Orbs */}
             <View style={[styles.orb, styles.orbLarge]} />
             <View style={[styles.orb, styles.orbGlass]} />
