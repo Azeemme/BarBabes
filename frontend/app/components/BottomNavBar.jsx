@@ -9,18 +9,18 @@ const BottomNavBar = () => {
   return (
     <View style={styles.container}>
       {/* Home Icon */}
-      <TouchableOpacity style={styles.navItem}>
+      <TouchableOpacity style={styles.navItem} onPress={() => router.push('../Dashboard/Dashboard')}>
         <Image source={{ uri: 'https://img.icons8.com/ios-filled/50/ffffff/home.png' }} style={styles.icon} />
       </TouchableOpacity>
       
-      {/* Stats/Graph Icon (Active) */}
-      <TouchableOpacity style={styles.navItem} onPress={() => router.push('../Dashboard/Dashboard')}>
-        <Image source={{ uri: 'https://img.icons8.com/ios-filled/50/ffffff/graph.png' }} style={styles.icon} />
-        </TouchableOpacity>
-            
-      {/* Group Icon */}
+      {/* Map Icon (was Stats/Graph) */}
       <TouchableOpacity style={styles.navItem} onPress={() => router.push('../Dashboard/GroupMapScreen')}>
-        <Image source={{ uri: 'https://img.icons8.com/ios-filled/50/ffffff/user-group-man-man.png' }} style={styles.icon} />
+        <Image source={{ uri: 'https://img.icons8.com/ios-filled/50/ffffff/map.png' }} style={styles.icon} />
+      </TouchableOpacity>
+
+      {/* Phone Icon (was Group) */}
+      <TouchableOpacity style={styles.navItem} onPress={() => router.push('../Dashboard/ContextList')}>
+        <Image source={{ uri: 'https://img.icons8.com/ios-filled/50/ffffff/phone.png' }} style={styles.icon} />
       </TouchableOpacity>
       
       {/* Profile Icon */}

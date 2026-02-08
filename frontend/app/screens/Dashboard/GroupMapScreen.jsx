@@ -11,7 +11,6 @@ import {
   ScrollView,
 } from 'react-native';
 import MainLayout from '../../MainLayout';
-import TopNavBar from '../../components/TopNavBar';
 import BottomNavBar from '../../components/BottomNavBar';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -125,25 +124,7 @@ export default function GroupMapScreen() {
   return (
     <MainLayout>
       <View style={styles.container}>
-      {/* Top bar: profile + Name + hamburger */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <View style={styles.headerAvatar}>
-            <Image
-              source={{ uri: 'https://placehold.co/40x40/6B2D3C/fff?text=U' }}
-              style={styles.headerAvatarImg}
-            />
-          </View>
-          <Text style={styles.headerName}>Name</Text>
-        </View>
-        <TouchableOpacity style={styles.hamburger}>
-          <View style={styles.hamburgerLines}>
-            <View style={styles.hamburgerLine} />
-            <View style={styles.hamburgerLine} />
-            <View style={styles.hamburgerLine} />
-          </View>
-        </TouchableOpacity>
-      </View>
+      {/* ...existing code... */}
 
       {/* Map area: title, location, pin, dots */}
       <View style={styles.mapArea}>
@@ -282,7 +263,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: BOTTOM_NAV_HEIGHT,
+    bottom: BOTTOM_NAV_HEIGHT - 18,
     backgroundColor: '#9A4655',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
